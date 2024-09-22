@@ -1,18 +1,23 @@
 module Web.View.Posts.Show where
 import Web.View.Prelude
-import qualified Text.MMark as MMark
+import Application.Script.Prelude (render)
 
-data ShowView = ShowView { post :: Post }
+data ShowView = ShowView { post :: Include "comments" Post }
 
 instance View ShowView where
     html ShowView { .. } = [hsx|
         {breadcrumb}
         <h1>{post.title}</h1>
-        <p>{post.createdAt |> timeAgo}</p>
-        <p>{post.body |> renderMarkdown}</p>
+        <p>{post.body}</p>
+        <p>{post.likes}</p>
 
-        <a href={NewCommentAction post.id}>Add Comment</a>
+        <a href={NewCommentAction post.id}>Comment</a><br>
+        <a href={LikePost post.id}>like</a><br>
+        <a href={DislikePost post.id}>dislike</a>
 
+        <div>{forEach post.comments renderComment}</div>
+
+        
 
     |]
         where
@@ -20,8 +25,16 @@ instance View ShowView where
                             [ breadcrumbLink "Posts" PostsAction
                             , breadcrumbText "Show Post"
                             ]
-renderMarkdown text =     
-    case text |> MMark.parse "" of
-        Left error -> "Something went wrong"
-        Right markdown -> MMark.render markdown |> tshow |> preEscapedToHtml
 
+renderComment :: Comment -> Html
+renderComment comment = [hsx|
+    <div style="border: solid black 1px; padding: 1%; margin: 1%; width: 50%;"> 
+    <h5>{comment.author}</h5>
+    <div>{comment.body} </div>
+    <div>{comment.likes}</div>
+    <a href={LikeComment comment.id comment.postId}>upvote</a> <br>
+    <a href={DislikeComment comment.id comment.postId}>downvote</a>
+    </div>
+
+
+|]

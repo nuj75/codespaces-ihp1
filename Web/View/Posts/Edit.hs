@@ -1,6 +1,5 @@
 module Web.View.Posts.Edit where
 import Web.View.Prelude
-import Text.Blaze.Html4.FrameSet (textarea)
 
 data EditView = EditView { post :: Post }
 
@@ -19,6 +18,8 @@ instance View EditView where
 renderForm :: Post -> Html
 renderForm post = formFor post [hsx|
     {(textField #title)}
-    {(textareaField #body) { helpText = "You can use Markdown here"} }
+    {(textField #body)}
+    {(textField #likes)}
     {submitButton}
+
 |]

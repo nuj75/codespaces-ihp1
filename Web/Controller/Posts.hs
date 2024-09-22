@@ -5,15 +5,15 @@ import Web.View.Posts.Index
 import Web.View.Posts.New
 import Web.View.Posts.Edit
 import Web.View.Posts.Show
-import qualified Text.MMark as MMark
+import Network.Wai.Util (redirect)
 
 
 instance Controller PostsController where
     action PostsAction = do
-        posts <- query @Post 
-            |> orderByDesc #createdAt
-            |> fetch
+        posts <- query @Post |> fetch
         render IndexView { .. }
+
+    
 
     action NewPostAction = do
         let post = newRecord
@@ -21,6 +21,8 @@ instance Controller PostsController where
 
     action ShowPostAction { postId } = do
         post <- fetch postId
+            >>= pure . modify #comments (orderByDesc #createdAt)
+            >>= fetchRelated #comments
         render ShowView { .. }
 
     action EditPostAction { postId } = do
@@ -55,15 +57,28 @@ instance Controller PostsController where
         setSuccessMessage "Post deleted"
         redirectTo PostsAction
 
+    action LikePost { postId } = do
+
+        updatepost <- fetch ( postId )
+        updatepost
+            |> set #likes (updatepost.likes + 1)
+            |> updateRecord
+        redirectTo ShowPostAction { .. }
+
+    action DislikePost { postId } = do
+        updatePost <- fetch ( postId )
+        updatePost
+            |> set #likes (case updatePost.likes > 0 of
+                                True -> updatePost.likes - 1
+                                False -> updatePost.likes
+                            )
+            |> updateRecord
+
+         
+        redirectTo ShowPostAction { .. }
+        
+    
+
+
 buildPost post = post
-    |> fill @'["title", "body"]
-    |> validateField #title nonEmpty
-    |> validateField #body nonEmpty
-    |> validateField #body isMarkdown
-
-
-isMarkdown :: Text -> ValidatorResult
-isMarkdown text =
-    case MMark.parse "" text of
-        Left _ -> Failure "Please provide valid Markdown"
-        Right _ -> Success
+    |> fill @'["title", "body", "likes"]

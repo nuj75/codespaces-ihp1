@@ -18,7 +18,8 @@ instance View NewView where
 renderForm :: Post -> Html
 renderForm post = formFor post [hsx|
     {(textField #title)}
-    {(textareaField #body)}
+    {(textField #body)}
+    {(textField #likes)}
     {submitButton}
 
 |]

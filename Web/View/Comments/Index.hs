@@ -31,7 +31,7 @@ instance View IndexView where
 renderComment :: Comment -> Html
 renderComment comment = [hsx|
     <tr>
-        <td>{comment}</td>
+        <td>{comment.body}</td>
         <td><a href={ShowCommentAction comment.id}>Show</a></td>
         <td><a href={EditCommentAction comment.id} class="text-muted">Edit</a></td>
         <td><a href={DeleteCommentAction comment.id} class="js-delete text-muted">Delete</a></td>
